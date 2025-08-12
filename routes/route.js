@@ -21,8 +21,8 @@ const router = express.Router();
 // Sign UP & Login
 router.route("/signUp").post(handleUserSignUp);
 router.route("/login").post(handleUserLogin);
-router.route("/verifyRejistration").post(VerifyRejistration);
-router.route("/verificationComplete/:resetToken").post(CompleteVerification);
+// router.route("/verifyRejistration").post(VerifyRejistration);
+// router.route("/verificationComplete/:resetToken").post(CompleteVerification);
 
 
 
