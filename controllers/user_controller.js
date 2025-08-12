@@ -263,6 +263,7 @@ const handleUserSignUp = async (req, res) => {
 };
 
 const handleUserLogin = async (req, res) => {
+  console.log(req.body);
   try {
     const { email, password } = req.body;
     if (!email || !password) {
