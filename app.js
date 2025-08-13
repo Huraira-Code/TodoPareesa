@@ -7,14 +7,13 @@ const router = require("./routes/route");
 const authenticationMiddleware = require("./middleware/authentication");
 const cors = require("cors"); // <-- Added
 const port = process.env.PORT || 5000;
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors()); // <-- Allow any site to access
+const bodyParser = require("body-parser");
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }))
 
 // Database Connection
 connectDB();
-
+app.use(cors()); // <-- Allow any site to acce
 app.use("/", router);
 app.use("/api/v1/", authenticationMiddleware, router);
 
