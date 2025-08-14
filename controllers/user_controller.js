@@ -167,6 +167,7 @@ const VerifyRejistration = async (req, res) => {
 
 // COMPLETE VERIFICATION
 const CompleteVerification = async (req, res) => {
+  console.log(req.body)
   const { resetToken } = req.body;
   const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
 
