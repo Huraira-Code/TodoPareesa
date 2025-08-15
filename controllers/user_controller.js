@@ -91,23 +91,34 @@ const handleUserLogin = async (req, res) => {
   console.log(req.body);
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
-    const user = await User.findOne({ email });
+
+    const user = await User.findOne({ email }).select("+password"); // explicitly select password
     if (!user) {
       return res.status(404).json({ success: false, message: "Email or password is incorrect" });
     }
-    const validated = await bcrypt.compare(password, user.password);
-    if (!validated) {
+
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
       return res.status(401).json({ success: false, message: "Email or password is incorrect" });
     }
-    const token = jwt.sign({ _id: user._id, name: user.name }, process.env.JWT_SECRET, { expiresIn: "30d" });
-    res.status(200).json({ success: true, message: "Successfully logged in", token });
+
+    const token = user.generateAuthToken();
+    user.password = undefined; // remove password before sending
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully logged in",
+      token,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // VERIFY REGISTRATION
 const VerifyRejistration = async (req, res) => {
