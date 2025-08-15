@@ -5,15 +5,22 @@ const authenticationMiddleware = (req, res, next) => {
 
   try {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.json({ msg: "no token provided" });
+      return res.status(401).json({ success: false, message: "No token provided" });
     }
+
     const token = authHeader.split(" ")[1];
-    const verify = jwt.verify(token, process.env.JWT_SECRET);
-    if (verify) {
-      return next();
-    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+    // Attach payload (id, role, email) to request
+    req.user = {
+      id: decoded.id,
+      role: decoded.role,
+      email: decoded.email,
+    };
+
+    next();
   } catch (error) {
-    res.redirect("/");
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };
 
