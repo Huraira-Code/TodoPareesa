@@ -94,7 +94,7 @@ const markInProgress = async (req, res) => {
       return res.status(404).json({ success: false, message: "Task not found" });
     }
 
-    task.status = "in-progress";
+    task.status = "pending";
     await task.save();
 
     res.status(200).json({
