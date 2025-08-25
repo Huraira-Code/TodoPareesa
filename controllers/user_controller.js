@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const cloudinary = require("cloudinary");
 const crypto = require("crypto");
-const { verifyUserMail,forgotPasswordMail } = require("../utils/mail.utils");
+const { verifyUserMail, forgotPasswordMail } = require("../utils/mail.utils");
 
 // SIGN UP
 const handleUserSignUp = async (req, res) => {
@@ -249,7 +249,7 @@ const viewProfile = async (req, res) => {
   try {
     // Assuming you already have middleware that attaches `req.user` after verifying JWT
     const userId = req.user.id;
-    console.log(userId)
+    console.log(userId);
     const user = await User.findById(userId).select("-password -__v"); // exclude password & __v
     if (!user) {
       return res
@@ -357,7 +357,9 @@ const verifyResetToken = async (req, res) => {
   const { resetToken } = req.body;
 
   if (!resetToken) {
-    return next(new AppError("Reset token is required", 400));
+    res
+      .status(400)
+      .json({ success: false, message: "token not found or token expired" });
   }
 
   const hashedToken = crypto
@@ -371,7 +373,7 @@ const verifyResetToken = async (req, res) => {
   });
 
   if (!user) {
-    return next(new AppError("Invalid or expired reset token", 400));
+    res.status(400).json({ success: false, message: "User not found" });
   }
 
   res.status(200).json({
@@ -384,15 +386,21 @@ const changePasswordWithToken = async (req, res) => {
   const { password, confirmPassword, resetToken } = req.body;
 
   if (!password || !confirmPassword) {
-    return next(new AppError("Password and confirm password are required", 400));
+    res
+      .status(400)
+      .json({ success: false, message: "password or confirm passwrod not send" });
   }
 
   if (password !== confirmPassword) {
-    return next(new AppError("Password and confirm password do not match", 400));
+    res
+      .status(400)
+      .json({ success: false, message: "password and confirm password not match" });
   }
 
   if (!resetToken) {
-    return next(new AppError("Reset token is required", 400));
+    res
+      .status(400)
+      .json({ success: false, message: "token not found or token expired" });
   }
   const hashedToken = crypto
     .createHash("sha256")
@@ -405,7 +413,9 @@ const changePasswordWithToken = async (req, res) => {
   });
 
   if (!user) {
-    return next(new AppError("Invalid or expired reset token", 400));
+    res
+      .status(400)
+      .json({ success: false, message: "user not found " });
   }
 
   user.password = password; // pre-save hook should hash this
@@ -419,7 +429,6 @@ const changePasswordWithToken = async (req, res) => {
     message: "Password reset successfully",
   });
 };
-
 
 module.exports = {
   handleUserSignUp,
