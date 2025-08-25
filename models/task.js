@@ -26,7 +26,7 @@ const taskSchema = new Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
+  { timestamps: false }
 );
 
 // Export Task model

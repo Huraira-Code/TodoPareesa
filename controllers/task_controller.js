@@ -3,7 +3,7 @@ Task
 // ✅ Create Task
 const createTask = async (req, res) => {
   try {
-    const { title, description,date } = req.body;
+    const { title, description, date } = req.body;
 
     if (!title) {
       return res.status(400).json({ success: false, message: "Title is required" });
