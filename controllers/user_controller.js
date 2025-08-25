@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const cloudinary = require("cloudinary");
 const crypto = require("crypto");
-const { verifyUserMail } = require("../utils/mail.utils");
+const { verifyUserMail,forgotPasswordMail } = require("../utils/mail.utils");
 
 // SIGN UP
 const handleUserSignUp = async (req, res) => {
@@ -13,17 +13,25 @@ const handleUserSignUp = async (req, res) => {
 
   if (!name || !email || !password) {
     if (req.file) fs.rmSync(`uploads/${req.file.filename}`);
-    return res.status(400).json({ success: false, message: "All fields are required" });
+    return res
+      .status(400)
+      .json({ success: false, message: "All fields are required" });
   }
 
   if (password.length < 8) {
     if (req.file) fs.rmSync(`uploads/${req.file.filename}`);
-    return res.status(400).json({ success: false, message: "Password must be at least 8 characters long" });
+    return res.status(400).json({
+      success: false,
+      message: "Password must be at least 8 characters long",
+    });
   }
 
   if (name.length < 3 || name.length > 30) {
     if (req.file) fs.rmSync(`uploads/${req.file.filename}`);
-    return res.status(400).json({ success: false, message: "Name must be between 3 and 30 characters" });
+    return res.status(400).json({
+      success: false,
+      message: "Name must be between 3 and 30 characters",
+    });
   }
 
   const isUserExist = await User.findOne({ email });
@@ -31,12 +39,16 @@ const handleUserSignUp = async (req, res) => {
 
   if (isUserExist) {
     if (req.file) fs.rmSync(`uploads/${req.file.filename}`);
-    return res.status(400).json({ success: false, message: "Email already in use" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Email already in use" });
   }
 
   if (isNameExist) {
     if (req.file) fs.rmSync(`uploads/${req.file.filename}`);
-    return res.status(400).json({ success: false, message: "Name already taken" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Name already taken" });
   }
 
   const user = await User.create({
@@ -46,12 +58,15 @@ const handleUserSignUp = async (req, res) => {
     contact,
     avatar: {
       public_id: email,
-      secure_url: "https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png",
+      secure_url:
+        "https://cdn3.iconfinder.com/data/icons/avatars-round-flat/33/man5-512.png",
     },
   });
 
   if (!user) {
-    return res.status(400).json({ success: false, message: "User registration failed" });
+    return res
+      .status(400)
+      .json({ success: false, message: "User registration failed" });
   }
 
   if (req.file) {
@@ -71,11 +86,14 @@ const handleUserSignUp = async (req, res) => {
 
       fs.rmSync(`uploads/${req.file.filename}`);
     } catch (error) {
-      return res.status(500).json({ success: false, message: "File uploading error: " + error.message });
+      return res.status(500).json({
+        success: false,
+        message: "File uploading error: " + error.message,
+      });
     }
   }
 
-  await user.save() 
+  await user.save();
   user.password = undefined;
   const token = await user.generateAuthToken();
 
@@ -93,17 +111,23 @@ const handleUserLogin = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
     }
 
     const user = await User.findOne({ email }).select("+password"); // explicitly select password
     if (!user) {
-      return res.status(404).json({ success: false, message: "Email or password is incorrect" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Email or password is incorrect" });
     }
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(401).json({ success: false, message: "Email or password is incorrect" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Email or password is incorrect" });
     }
 
     const token = user.generateAuthToken();
@@ -119,14 +143,15 @@ const handleUserLogin = async (req, res) => {
   }
 };
 
-
 // VERIFY REGISTRATION
 const VerifyRejistration = async (req, res) => {
   console.log("body:", req.body);
 
   const { email } = req.body;
   if (!email) {
-    return res.status(400).json({ success: false, message: "Email is required" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Email is required" });
   }
 
   let user;
@@ -139,7 +164,10 @@ const VerifyRejistration = async (req, res) => {
   }
 
   if (!user) {
-    return res.status(200).json({ success: true, message: "If the email exists, a verification link will be sent" });
+    return res.status(200).json({
+      success: true,
+      message: "If the email exists, a verification link will be sent",
+    });
   }
 
   let resetToken;
@@ -148,7 +176,10 @@ const VerifyRejistration = async (req, res) => {
     console.log("Generated reset token:", resetToken);
   } catch (err) {
     console.error("Error generating reset token:", err);
-    return res.status(500).json({ success: false, message: "Could not generate verification token" });
+    return res.status(500).json({
+      success: false,
+      message: "Could not generate verification token",
+    });
   }
 
   const resetTokenLink = resetToken;
@@ -161,7 +192,10 @@ const VerifyRejistration = async (req, res) => {
     user.forgotPasswordToken = undefined;
     user.forgotPasswordExpiry = undefined;
     await user.save({ validateBeforeSave: false });
-    return res.status(500).json({ success: false, message: "Email could not be sent. Please try again later." });
+    return res.status(500).json({
+      success: false,
+      message: "Email could not be sent. Please try again later.",
+    });
   }
 
   try {
@@ -169,18 +203,24 @@ const VerifyRejistration = async (req, res) => {
     console.log("User saved successfully");
   } catch (err) {
     console.error("Error saving user:", err);
-    return res.status(500).json({ success: false, message: "Could not save user changes" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Could not save user changes" });
   }
 
-  res.status(200).json({ success: true, message: "Verification request sent to user mail" });
+  res
+    .status(200)
+    .json({ success: true, message: "Verification request sent to user mail" });
 };
-
 
 // COMPLETE VERIFICATION
 const CompleteVerification = async (req, res) => {
-  console.log(req.body)
+  console.log(req.body);
   const { resetToken } = req.body;
-  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
 
   const user = await User.findOne({
     verifyEmailToken: hashedToken,
@@ -188,7 +228,9 @@ const CompleteVerification = async (req, res) => {
   });
 
   if (!user) {
-    return res.status(400).json({ success: false, message: "Invalid token or token expired" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid token or token expired" });
   }
 
   user.verfiy = true;
@@ -203,9 +245,190 @@ const CompleteVerification = async (req, res) => {
   });
 };
 
+const viewProfile = async (req, res) => {
+  try {
+    // Assuming you already have middleware that attaches `req.user` after verifying JWT
+    const userId = req.user.id;
+    console.log(userId)
+    const user = await User.findById(userId).select("-password -__v"); // exclude password & __v
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long",
+      });
+    }
+
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Old password is incorrect" });
+    }
+
+    user.password = newPassword; // Assuming you hash password in user_model pre-save hook
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new AppError("email is required!", 400));
+  }
+
+  const user = await User.findOne({ email });
+  console.log("usr", user);
+  if (!user) {
+    // For security, don't reveal if email exists or not
+    return next(
+      new AppError(
+        "If a user with that email exists, a password reset email has been sent.",
+        200
+      )
+    );
+  }
+
+  const resetToken = user.generateForgotPasswordToken(); // Assuming this method exists on userSchema
+
+  // Construct the reset link including the dynamic databaseName
+  const resetTokenLink = resetToken;
+
+  try {
+    await forgotPasswordMail(email, resetTokenLink); // Ensure mail utility can handle this URL
+  } catch (error) {
+    user.forgotPasswordToken = undefined;
+    user.forgotPasswordExpiry = undefined;
+    await user.save({ validateBeforeSave: false }); // Save without re-validating password
+    console.error("Forgot password email send error:", error);
+    return next(
+      new AppError(`Email could not be sent. Please try again later.`, 500)
+    );
+  }
+
+  await user.save(); // Save user with the token and expiry (assuming `generateForgotPasswordToken` updates these fields)
+  res.status(200).json({
+    success: true,
+    message: "Forgot password request sent to user mail",
+  });
+};
+
+const verifyResetToken = async (req, res) => {
+  const { resetToken } = req.body;
+
+  if (!resetToken) {
+    return next(new AppError("Reset token is required", 400));
+  }
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  const user = await User.findOne({
+    forgotPasswordToken: hashedToken,
+    forgotPasswordExpiry: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new AppError("Invalid or expired reset token", 400));
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Token verified successfully. You can now reset your password.",
+  });
+};
+
+const changePasswordWithToken = async (req, res) => {
+  const { password, confirmPassword, resetToken } = req.body;
+
+  if (!password || !confirmPassword) {
+    return next(new AppError("Password and confirm password are required", 400));
+  }
+
+  if (password !== confirmPassword) {
+    return next(new AppError("Password and confirm password do not match", 400));
+  }
+
+  if (!resetToken) {
+    return next(new AppError("Reset token is required", 400));
+  }
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  const user = await User.findOne({
+    forgotPasswordToken: hashedToken,
+    forgotPasswordExpiry: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new AppError("Invalid or expired reset token", 400));
+  }
+
+  user.password = password; // pre-save hook should hash this
+  user.forgotPasswordToken = undefined;
+  user.forgotPasswordExpiry = undefined;
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Password reset successfully",
+  });
+};
+
+
 module.exports = {
   handleUserSignUp,
   handleUserLogin,
   VerifyRejistration,
   CompleteVerification,
+  viewProfile,
+  changePassword,
+  forgotPassword,
+  verifyResetToken,
+  changePasswordWithToken,
 };
