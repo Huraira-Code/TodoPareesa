@@ -2,6 +2,7 @@ const Task = require("../models/task");
 Task
 // ✅ Create Task
 const createTask = async (req, res) => {
+  console.log("req.body",req.body)
   try {
     const { title, description, date } = req.body;
 
