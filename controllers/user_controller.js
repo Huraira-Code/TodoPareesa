@@ -415,7 +415,7 @@ const changePasswordWithToken = async (req, res) => {
   if (!user) {
     res
       .status(400)
-      .json({ success: false, message: "user not found " });
+      .json({ success: false, message: "user not found or token expired" });
   }
 
   user.password = password; // pre-save hook should hash this

@@ -15,11 +15,15 @@ const taskSchema = new Schema(
       enum: ["pending", "completed"],
       default: "pending",
     },
-   
+
     user: {
       type: Schema.Types.ObjectId,
       ref: "User", // Reference to User model
       required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
     },
   },
   { timestamps: true }
