@@ -268,7 +268,7 @@ const viewProfile = async (req, res) => {
 
 const changePassword = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
     const { oldPassword, newPassword } = req.body;
 
     if (!oldPassword || !newPassword) {
