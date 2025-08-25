@@ -409,7 +409,7 @@ const changePasswordWithToken = async (req, res) => {
   }
 
   user.password = password; // pre-save hook should hash this
-  user.forgotPasswordToken = undefined;
+  user.forgotPasswordToken = undefined; //learning everything
   user.forgotPasswordExpiry = undefined;
 
   await user.save();
